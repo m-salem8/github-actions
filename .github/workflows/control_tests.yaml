@@ -1,0 +1,115 @@
+photo_user Mahmoud
+SALEM keyboard_arrow_down
+notifications_none
+Github - Events & Actions
+ 60 minutes
+ Normal
+
+Git / Github
+5. Github Events & Actions step by step
+
+In this section, we are going to build an Action that runs some tests with pytest and controls the quality of your code with Flake8 when you push on your repository.
+
+The pytest framework makes it easy to write small, readable tests and can scale to support complex functional testing for applications and libraries.
+
+Flake8 is a Python library that wraps PyFlakes, pycodestyle, and Ned Batchelder’s McCabe script. It is a great toolkit for checking your code base against coding style (PEP8), programming errors (like “library imported but unused” and “Undefined name”), and to check cyclomatic complexity.
+
+First Step
+First of all, you have to create a python script that contains functions with asserts to test. Pytest will scan all the functions inside your scripts but there is one condition: the name of your functions have to begin with 'test\_'
+
+So let's create this script name file_test.py
+
+import pytest
+
+def test_calc_addition():
+  # Function test the output of 2+4
+    output = 2+4
+    assert output == 6
+
+def test_calc_substraction():
+  # Function test the output of 2-4
+    output = 2-4
+    assert output == -2
+
+def test_calc_multiply():
+  # Function test the output of 2*4
+    output = 2*4
+    assert output == 8
+
+def test_coucou():
+  # Function test if the output return 'hello'
+    output='hello'
+    assert output == 'hello'
+Make our Action
+Now we have our file of tests, let's create our workflow. Go inside your folder containing your repository, create a secret folder named .github and a subfolder named workflows, and create your file.
+
+Create control_tests.yaml give a name to our workflow, and set the action on push
+
+name: Pytest & flake8 control Push
+on: push
+Define a job id, name it and let's define on which instance we want to run it.
+
+jobs:
+  qa:
+    name: Check tests
+    runs-on: ubuntu-20.04
+Now, let's configure our steps. We have 5 steps:
+
+A checkout to the repo
+Set up Python on the VM
+The packages installation
+The run of our tests
+The control of the Pep8 convention
+steps:
+  - name: Checkout on master
+    uses: actions/checkout@v3
+
+  - name: Set up Python
+    uses: actions/setup-python@master
+    with:
+      python-version: "3.x"
+In the first step, we have the keyword uses which calls a reusable workflow already existent on github. Then we set up Python on the instance with another workflow that already exists. and we specify the Python version with the keyword with
+
+In the following steps, we are going to install two packages and run pytest and flake8
+
+- name: Install pytest and flake8
+  run: |
+    pip install pytest
+    pip install flake8
+
+- name: Run tests
+  run: |
+    pytest
+
+- name: Run flake8
+  uses: py-actions/flake8@v2
+With the keyword run, you just run this command in a shell Ubuntu on the instance. To use flake8, you have to use a workflow already existing on the github marketplace.
+
+Here is your final workflow:
+
+name: Control Push
+on: push
+jobs:
+  qa:
+    name: Check tests
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Checkout on master
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@master
+        with:
+          python-version: "3.x"
+
+      - name: Install pytest and flake8
+        run: |
+          pip install pytest
+          pip install flake8
+
+      - name: Run tests
+        run: |
+          pytest
+
+      - name: Run flake8
+        uses: py-actions/flake8@v2
